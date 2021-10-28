@@ -7,6 +7,8 @@
     WS2812B Datasheet:
         https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
 
+    https://sudonull.com/post/100926-Using-color-spaces-in-ATTiny13a-for-WS2811
+
     -Usa casi 300 bytes.
     
     Javier.

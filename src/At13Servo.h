@@ -11,100 +11,45 @@
 
 #ifndef attiny13_servo_h
 #define attiny13_servo_h
-
 #include <Arduino.h>
+#include <avr/io.h>
+#include <util/delay.h>
 
 // aprox. 13.84 grados = 14 posiciones
 // (esta calibrado para el AtTiny13 y el micro-servo azul)
 const int servo_positions[] = {600, 763, 926, 1089, 1252, 1415, 1578,
                                1741, 1904, 2067, 2230, 2393, 2556, 2730};
 
-void servo_setup(uint8_t pin)
-{
-    pinMode(pin, OUTPUT);
-}
-
 // posiciona el servo en una de las 14 posiciones
 // Flash:214 bytes, Ram:30 bytes
-void servo_move_table(uint8_t pin, uint8_t index)
+void servo_move_table(uint8_t pin_data, uint8_t index)
 {
-    if (index < 0)
-        index = 0;
-    if (index > 13)
-        index = 13;
+    DDRB |= pin_data;
     volatile int z = servo_positions[index];
     for (uint8_t i = 0; i < 30; i++)
     {
-        digitalWrite(pin, HIGH);
+        PORTB |= pin_data;
         delayMicroseconds(z);
-        digitalWrite(pin, LOW);
-        delay(20);
+        PORTB &= ~pin_data;
+        _delay_ms(20);
     }
 }
+
+#define map(in, in_min, in_max, out_min, out_max) ((in - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
 // posiciona el servo en grados de 0 a 180
 // Flash:364 bytes, Ram:2 bytes
-void servo_move(uint8_t pin, uint8_t grados)
+void servo_move(uint8_t pin_data, uint8_t grados)
 {
-    if (grados < 0)
-        grados = 0;
-    if (grados > 180)
-        grados = 180;
+    DDRB |= pin_data;
     volatile int z = map(grados, 0, 180, 600, 2730);
     for (uint8_t i = 0; i < 30; i++)
     {
-        digitalWrite(pin, HIGH);
+        PORTB |= pin_data;
         delayMicroseconds(z);
-        digitalWrite(pin, LOW);
-        delay(20);
+        PORTB &= ~pin_data;
+        _delay_ms(20);
     }
 }
-
-// Flash:594 bytes, Ram:32 bytes
-class Servo
-{
-public:
-    uint8_t _pin = -1;
-
-    void setup(uint8_t pin)
-    {
-        _pin = pin;
-        pinMode(_pin, OUTPUT);
-    }
-
-    // ** index va de 0 a 13 !! **
-    void move_table(uint8_t index)
-    {
-        if (index < 0)
-            index = 0;
-        if (index > 13)
-            index = 13;
-        // (esta calibrado para el AtTiny13 y el micro-servo azul)
-        volatile int z = servo_positions[index];
-        for (uint8_t i = 0; i < 30; i++)
-        {
-            digitalWrite(_pin, HIGH);
-            delayMicroseconds(z);
-            digitalWrite(_pin, LOW);
-            delay(20);
-        }
-    }
-
-    void move(uint8_t grados)
-    {
-        if (grados < 0)
-            grados = 0;
-        if (grados > 180)
-            grados = 180;
-        volatile int z = map(grados, 0, 180, 600, 2730);
-        for (uint8_t i = 0; i < 30; i++)
-        {
-            digitalWrite(_pin, HIGH);
-            delayMicroseconds(z);
-            digitalWrite(_pin, LOW);
-            delay(20);
-        }
-    }
-};
 
 #endif
